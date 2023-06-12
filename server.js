@@ -1,11 +1,13 @@
 const express = require("express");
+require('dotenv').config();
+
 // const bodyParser = require("body-parser"); /* deprecated */
 const cors = require("cors");
 
 const app = express();
 
 var corsOptions = {
-  origin: "http://localhost:8081"
+  origin: "*"
 };
 
 app.use(cors(corsOptions));
@@ -18,17 +20,13 @@ app.use(express.urlencoded({ extended: true }));   /* bodyParser.urlencoded() is
 
 const db = require("./app/models");
 db.sequelize.sync();
-// // drop the table if it already exists
-// db.sequelize.sync({ force: true }).then(() => {
-//   console.log("Drop and re-sync db.");
-// });
 
 // simple route
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to bezkoder application." });
+  res.json({ message: "Welcome to adityacaturputrangerjainlsp application." });
 });
 
-require("./app/routes/turorial.routes")(app);
+require("./app/routes/user.routes")(app);
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
