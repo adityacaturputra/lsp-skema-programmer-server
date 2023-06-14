@@ -1,5 +1,8 @@
 const db = require("../models");
+const exportExcel = require("../utils/helpers/exportExcel");
+const sum = require("../utils/helpers/sum");
 const User = db.User;
+const PayrollTransaction = db.PayrollTransaction;
 const Op = db.Sequelize.Op;
 
 class UserController {
@@ -16,8 +19,10 @@ class UserController {
     // Create a User
     const user = {
       name: req.body.name,
-      jabatan: req.body.jabatan,
-      gaji_pokok: req.body.gaji_pokok,
+      position: req.body.position,
+      salary: req.body.salary,
+      phone: req.body.phone,
+      address: req.body.address,
     };
 
     // Save User in the database
@@ -91,7 +96,7 @@ class UserController {
       })
       .catch(err => {
         res.status(500).send({
-          message: "Error updating User with id=" + id
+          message: err.message || "Error updating User with id=" + id
         });
       });
   };
@@ -138,6 +143,69 @@ class UserController {
       });
   };
 
+  generatePayrollReport = async(req, res) => {
+    try {
+      const { month_count } = req.query
+      const users = await User.findAll();
+
+      const reportsTransaction = users.map(user => {
+        const bonus = +user.salary * (
+          user?.position?.toLowerCase()?.includes('manager') ? 1/2 :
+          user?.position?.toLowerCase()?.includes('supervisor') ? 4/10 :
+          user?.position?.toLowerCase()?.includes('staff') ? 3/10 : 0
+        );
+
+        const pph = +user.salary * 5/100;
+        
+        return {
+          user_id: user.id,
+          generated_at: new Date(),
+          salary: user.salary,
+          bonus,
+          pph,
+          total: (+user.salary + bonus - pph) * ( month_count || 1 ),
+          month_count,
+        }
+      })
+  
+      const sumAllSalaries = sum(reportsTransaction.map(e => e.salary))
+      const sumAllBonus = sum(reportsTransaction.map(e => e.bonus))
+      const sumAllPph = sum(reportsTransaction.map(e => e.pph))
+      const sumAlltotal = sum(reportsTransaction.map(e => e.total))
+  
+      await PayrollTransaction.bulkCreate(reportsTransaction);
+  
+      reportsTransaction.push({
+        user_id: 'Total: ',
+        generated_at: '',
+        salary: sumAllSalaries,
+        bonus: sumAllBonus,
+        pph: sumAllPph,
+        total: sumAlltotal
+      })
+  
+      reportsTransaction.forEach(report => {
+        delete report.generated_at;
+      });
+  
+      
+      const buffer = exportExcel(reportsTransaction, "sheet");
+  
+      res.writeHead(200, 
+        [
+          "Content-Type",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ],
+      );
+      return res.end(Buffer.from(buffer, "base64"));  
+    } catch (err) {
+      console.log(err)
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while removing all users."
+      });
+    }
+  };
 }
 
 module.exports = new UserController()

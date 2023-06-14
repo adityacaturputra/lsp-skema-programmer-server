@@ -1,7 +1,7 @@
 "use strict";
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class User extends Model {
+  class PayrollTransaction extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  User.init(
+  PayrollTransaction.init(
     {
       id: {
         allowNull: false,
@@ -19,34 +19,42 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         type: DataTypes.INTEGER,
       },
-      name: {
-        type: DataTypes.STRING(100),
+      user_id: {
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
-      position: {
-        type: DataTypes.STRING(50),
+      generated_at: {
+        type: "TIMESTAMP",
         allowNull: false,
       },
       salary: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      phone: {
-        type: DataTypes.STRING(20),
+      bonus: {
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
-      address: {
-        type: DataTypes.TEXT,
+      pph: {
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
-    },
+      total: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      month_count: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+    }, 
     {
       sequelize,
-      modelName: "User",
-      tableName: "lsp_users",
+      modelName: "PayrollTransaction",
+      tableName: "lsp_generated_payrolls",
       timestamps: false,
       paranoid: false,
     }
   );
-  return User;
+  return PayrollTransaction;
 };
