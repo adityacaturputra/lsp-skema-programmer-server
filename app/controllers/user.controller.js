@@ -159,6 +159,8 @@ class UserController {
         
         return {
           user_id: user.id,
+          name: user.name,
+          position: user.position,
           generated_at: new Date(),
           salary: user.salary,
           bonus,
