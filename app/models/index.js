@@ -22,6 +22,8 @@ if (config.use_env_variable) {
       config.password,
       config
     );
+    console.log("Koneksi ke database berhasil");
+    console.log(config);
   }
 }
 
